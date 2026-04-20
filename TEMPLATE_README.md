@@ -91,6 +91,8 @@ cross_agentic_project_template/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                     ← GitHub Actions CI pipeline
+├── docs/
+│   └── z-ai-usage-policy-reference.md ← Z.AI usage policy reference
 ├── scripts/
 │   ├── bump_version.py                ← Version bumper for releases
 │   └── check_version_consistency.py   ← CI check: all versions match
@@ -122,6 +124,7 @@ cross_agentic_project_template/
 | `.github/workflows/ci.yml` | Uncomment frontend section, adjust env vars | Structure, jobs |
 | `.pre-commit-config.yaml` | Uncomment frontend hooks | Core hooks |
 | `CONTRIBUTING.md` | Setup instructions, project name | Branch/release rules |
+| `docs/` | Add project-specific documentation | z-ai-usage-policy-reference.md |
 | `ruff.toml` | Lint rules if needed | Baseline rules |
 | `.gitignore` | Add project-specific patterns | Existing patterns |
 | `VERSION` | Update on releases | Format (vX.Y.Z) |
