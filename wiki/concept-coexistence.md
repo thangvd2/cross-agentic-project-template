@@ -21,6 +21,12 @@ A successful coexistence architecture involves several shared and distinct syste
 - **Customer System of Record (CSoR)**: Master view of customer data (e.g., Single Customer View) independent of the product cores.
 - **Offline Data Hub**: Curated analytical store used for consolidated batch reporting and statements.
 
+> **Diagram Summary**: A standard coexistence architecture is layered into four tiers:
+> - **User Experience (UX)**: Digital, Branch & Telephony, and Operations & Support channels.
+> - **Integration & Orchestration (I&O)**: Business Process Orchestration directing Domain APIs and a Payments Engine.
+> - **Cores & Services**: Vault Core (Core, Posting, Streaming, and Migration APIs) runs parallel to the Legacy Core and Customer System of Record. These are bridged by Migration services and an Online Data Hub.
+> - **Reporting**: An Offline Data Hub consumes data from all systems to generate Statements, Reconciliations, and Financial Reporting.
+
 ## Coexistence Patterns
 
 There are multiple architectural patterns to manage the interaction between the legacy core and Vault Core:

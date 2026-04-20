@@ -24,6 +24,8 @@ Vault Core ensures high availability (HA) and disaster recovery (DR) by deployin
 - **Postgres**: Uses logical database replication with a master and hot standby across zones for zero data loss and rapid failover.
 - **Kafka**: Active-active-active broker setup across three zones, with synchronous topic replication.
 
+> **Diagram Summary**: The high-level architecture diagram illustrates clusters distributed across Availability Zones 1, 2, and 3. A Kubernetes control plane manages worker nodes within a private network. Inside this data plane, Vault Core microservices run alongside cluster services (observability, networking, secret management) and the Kafka streaming service. A highly available Postgres database uses a master/hot-standby configuration, while external traffic is routed via ingress load balancers.
+
 ## Security Overview
 
 The architecture incorporates robust security measures:

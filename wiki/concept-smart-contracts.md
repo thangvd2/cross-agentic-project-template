@@ -21,7 +21,9 @@ Parameters have a time-series representation and can be defined at multiple leve
 
 ## Hooks and Lifecycle
 
-Hooks are used to define the logic executed when a certain event occurs during the lifecycle of an account. The typical account lifecycle moves from Activation → Operational → Maintenance → Closure.
+Hooks are used to define the logic executed when a certain event occurs during the lifecycle of an account. The typical account lifecycle progresses through four key phases: **Activation → Operational → Maintenance → Closure**.
+
+> **Diagram Summary**: The hook lifecycle visualizes the journey from "Opening account" to "Closing account". During the "Live account" phase (Operational and Maintenance), various event hooks (e.g., pre-posting, scheduled events, parameter changes) can occur in any order and execute multiple times, while activation and deactivation hooks happen strictly at the boundaries of the lifecycle.
 
 Key hooks include:
 - **Activation**: Called before activation to schedule definitions and perform initial movements.

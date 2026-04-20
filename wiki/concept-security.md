@@ -17,6 +17,10 @@ Security is shared between Thought Machine and the client. The exact division de
 - **Bank-Hosted**: The client bears more responsibility for infrastructure, network, and database security.
 - **SaaS**: Thought Machine manages the underlying cloud infrastructure, while the client focuses on identity access management and client-side configuration.
 
+> **Diagram Summary**: In a bank-hosted deployment, responsibility is cleanly divided:
+> - **Client responsibilities**: Identity & Access Management, Platform configuration, Data Protection, Audit Logs, Network security, and threat Detection.
+> - **Thought Machine responsibilities**: Secure Software Development, Third-Party Audits, Third-Party Penetration Testing, and internal Corporate Security.
+
 ## Compliance and Certifications
 
 Vault Core environments and operations align with major compliance standards, including:

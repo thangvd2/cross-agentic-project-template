@@ -18,6 +18,8 @@ The conceptual model of Vault Core relies on three main pillars:
 2. **Vault Core APIs & Ledger**: The underlying system that processes accepted postings to update account balances across multiple dimensions (e.g., asset classes, denominations, addresses, phases).
 3. **Streaming Events**: All state changes within Vault Core are provided as a stream of events, allowing external systems to consume real-time updates asynchronously.
 
+> **Diagram Summary**: The conceptual model visualizes Vault Core APIs as the central layer, bridging Smart Contracts above and the Ledger below. It highlights the primary data flows: Core commands and Migrations feed into the system, while Postings and Streaming events flow out.
+
 Vault Core is fundamentally designed to be highly available and to scale dynamically to meet short-term spikes and long-term growth through a distributed, cloud-based infrastructure.
 
 ## Core Capabilities
