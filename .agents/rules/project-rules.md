@@ -51,6 +51,7 @@
 
 - Single developer (sole GitHub account)
 - Branch and release rules: see RULES.md
+- Z.AI usage policy: see `docs/z-ai-usage-policy-reference.md`
 
 ## BRANCH RULES (MANDATORY)
 
