@@ -1,0 +1,156 @@
+name: CI
+
+on:
+  push:
+    branches: [master, dev]
+  pull_request:
+    branches: [master, dev]
+
+jobs:
+  # ── Detect which files changed ──────────────────────────
+  changes:
+    name: "Detect changed files"
+    runs-on: ubuntu-latest
+    outputs:
+      python: ${{ steps.filter.outputs.python }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      docs-only: ${{ steps.filter.outputs.docs-only }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            python:
+              - '**/*.py'
+              - 'requirements*.txt'
+              - 'ruff.toml'
+              - '.pre-commit-config.yaml'
+            # TODO: Uncomment and adjust if you have a frontend
+            # frontend:
+            #   - 'web-ui/**'
+            #   - 'src/**'
+            #   - 'package*.json'
+            docs-only:
+              - '**/*.md'
+              - 'VERSION'
+              - 'AGENTS.md'
+              - 'RELEASE_NOTES.md'
+
+  # ── Release PR warning ──────────────────────────────────
+  release-check:
+    name: "⚠️ Release PR — MUST use --merge (NOT --squash)"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.base_ref == 'master' && github.head_ref == 'dev'
+    steps:
+      - name: Validate release PR
+        run: |
+          echo "Release PR detected: dev → master"
+          echo "IMPORTANT: This PR MUST be merged with --merge (NOT --squash)"
+          echo "See CONTRIBUTING.md → Release Process"
+          echo ""
+          echo "If you squash this PR, shared history between dev and master will break"
+          echo "and all future release PRs will have conflicts."
+
+  # ── Docs-only bypass ────────────────────────────────────
+  docs-only-bypass:
+    name: "Docs-only change — CI skipped"
+    needs: changes
+    if: needs.changes.outputs.python != 'true' && needs.changes.outputs.frontend != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Only docs/config files changed. Skipping python-test, python-lint, frontend-build."
+
+  # ── .ai-sync/ sync check ────────────────────────────────
+  ai-sync-check:
+    name: ".ai-sync/ sync status"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python .ai-sync/sync.py --check
+
+  # ── Version consistency ─────────────────────────────────
+  version-consistency:
+    name: "Version consistency check"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python scripts/check_version_consistency.py
+
+  # ── Python tests ────────────────────────────────────────
+  python-test:
+    needs: changes
+    if: needs.changes.outputs.python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: v1-${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: python -m pytest tests/ -v --tb=short
+        # TODO: Add any required environment variables for tests
+        # env:
+        #   MY_SECRET: test-secret-key-for-ci
+
+  # ── Frontend build (uncomment for frontend projects) ─────
+  # frontend-build:
+  #   needs: changes
+  #   if: needs.changes.outputs.frontend == 'true'
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: web-ui  # TODO: Adjust to your frontend directory
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: "22"
+  #         cache: "npm"
+  #         cache-dependency-path: web-ui/package-lock.json  # TODO: Adjust path
+  #
+  #     - name: Install dependencies
+  #       run: npm ci
+  #
+  #     - name: Lint
+  #       run: npm run lint
+  #
+  #     - name: Build
+  #       run: npm run build
+
+  # ── Python lint ─────────────────────────────────────────
+  python-lint:
+    needs: changes
+    if: needs.changes.outputs.python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install lint tools
+        run: pip install ruff
+
+      - name: Lint
+        run: ruff check .

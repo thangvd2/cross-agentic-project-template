@@ -1,0 +1,74 @@
+# Pre-commit hooks for <!-- TODO: Replace with project name -->
+# Install: pip install -r requirements-dev.txt && pre-commit install
+# Pre-push hooks: pre-commit install --hook-type pre-push
+# Run manually: pre-commit run --all-files
+
+repos:
+  # ── Ruff: lint + format ───────────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.8
+    hooks:
+      - id: ruff
+        name: ruff lint
+        args: [--fix, --exit-non-zero-on-fix]
+        exclude: ^(node_modules/|venv/|\.venv/|dist/|build/)
+      - id: ruff-format
+        name: ruff format
+        exclude: ^(node_modules/|venv/|\.venv/|dist/|build/)
+
+  # ── Secret detection ──────────────────────────────────
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        name: detect secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: ^(package-lock\.json|venv/|\.venv/|\.secrets\.baseline)
+
+  # ── .ai-sync/ sync enforcement ────────────────────────
+  - repo: local
+    hooks:
+      - id: ai-sync-check
+        name: .ai-sync/ sync check (auto-regenerates platform configs)
+        entry: python .ai-sync/sync.py
+        language: system
+        files: ^\.ai-sync/
+        pass_filenames: false
+
+  # ── Pre-push: branch protection ────────────────────────
+  # NOTE: Requires .git-hooks/check-protected-branch.sh script
+  # Uncomment after creating the script:
+  # - repo: local
+  #   hooks:
+  #     - id: check-protected-branch
+  #       name: check protected branch (master/dev)
+  #       entry: bash .git-hooks/check-protected-branch.sh
+  #       language: system
+  #       stages: [pre-push]
+  #       pass_filenames: false
+  #       always_run: true
+
+  # ── Pre-push: run tests ───────────────────────────────
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: python -m pytest tests/ --tb=short -q
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: true
+
+  # ── Optional: ESLint + Prettier (uncomment for frontend projects) ──
+  # - repo: local
+  #   hooks:
+  #     - id: eslint
+  #       name: eslint (frontend)
+  #       entry: bash -c 'files=(); for f in "$@"; do files+=("${f#*/}"); done; npx eslint "${files[@]}"' --
+  #       language: system
+  #       files: ^src/.*\.(js|jsx|ts|tsx)$
+  #     - id: prettier
+  #       name: prettier (frontend)
+  #       entry: bash -c 'files=(); for f in "$@"; do files+=("${f#*/}"); done; npx prettier --write "${files[@]}"' --
+  #       language: system
+  #       files: ^src/.*\.(js|jsx|ts|tsx)$
