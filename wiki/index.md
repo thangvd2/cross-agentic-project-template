@@ -13,7 +13,7 @@
 
 > Specific products, components, tools.
 
-<!-- entity-vault-core.md -->
+- [[entity-vault-core]] — Thought Machine's cloud-native core banking system
 <!-- entity-smart-contract.md -->
 <!-- entity-supervisor-contract.md -->
 <!-- entity-edge-functions.md -->
@@ -22,10 +22,12 @@
 
 > Abstract ideas, frameworks, patterns, how things work.
 
-<!-- concept-architecture.md -->
-<!-- concept-financial-model.md -->
-<!-- concept-coexistence.md -->
-<!-- concept-security.md -->
+- [[concept-architecture]] — Cloud-native distributed architecture, Kubernetes, scaling, HA
+- [[concept-financial-model]] — EOD process, postings model, balance derivation
+- [[concept-coexistence]] — Legacy core coexistence and migration strategies
+- [[concept-security]] — Security model, shared responsibility, compliance, encryption
+- [[concept-postings]] — Postings model, accounts, balances, double-entry bookkeeping
+- [[concept-smart-contracts]] — Smart contract business logic, hooks, schedules, parameters
 <!-- concept-sc-hooks.md -->
 <!-- concept-parameters.md -->
 
@@ -33,7 +35,7 @@
 
 > Per-section summaries of ingested raw documents.
 
-<!-- source-vault-core-overview.md -->
+- [[source-vault-core-overview]] — Per-section summary of all Vault Core overview documents
 <!-- source-smart-contracts-clv4.md -->
 
 ## Analyses
@@ -46,6 +48,7 @@
 
 > API signatures, type definitions, enum values, lookup tables.
 
+- [[ref-vc5-service-compatibility]] — VC5 service compatibility matrix and switch order
 <!-- ref-clv4-enums.md -->
 <!-- ref-clv4-classes.md -->
 <!-- ref-clv4-hook-signatures.md -->
