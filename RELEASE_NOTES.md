@@ -1,5 +1,11 @@
 # Release Notes
 
+## v0.2.0 (2026-05-06)
+
+### Changed
+
+- Enforced `bump_version.py` and `check_version_consistency.py` usage in release rules — version files must be bumped via script, never manually
+
 ## v0.1.0 (2026-04-21)
 
 Initial release of the Cross-Agentic Development Template.
