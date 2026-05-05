@@ -18,7 +18,9 @@
 ## RELEASE RULES (MANDATORY)
 
 - Release PR is ALWAYS `dev` → `master`, merged with `gh pr merge <N> --merge` (NOT --squash)
-- ALWAYS update `VERSION`, relevant source headers, and `RELEASE_NOTES.md` ON `dev` BEFORE creating release PR
+- **ALWAYS use `python scripts/bump_version.py X.Y.Z` to sync ALL version locations** — NEVER edit version files manually. Script updates: `VERSION`, source headers, `README.md`, `package.json` (if frontend exists)
+- **ALWAYS run `python scripts/check_version_consistency.py` BEFORE and AFTER bump** to verify all files in sync
+- Update `RELEASE_NOTES.md` manually (the bump script does NOT touch release notes)
 - NEVER squash or rebase dev → master — this destroys shared history and causes permanent conflicts
 - Full process: see `CONTRIBUTING.md` → "Release Process (dev → master)"
 
