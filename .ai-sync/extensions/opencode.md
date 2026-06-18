@@ -1,7 +1,7 @@
 # OpenCode-Specific Extensions
 
 > **Appended to AGENTS.md when running `python .ai-sync/sync.py`.**
-> Rules that only apply to OpenCode (GLM-5.1 + Sisyphus agent system).
+> Rules that only apply to OpenCode (GLM-5.2 + Sisyphus agent system).
 
 ---
 

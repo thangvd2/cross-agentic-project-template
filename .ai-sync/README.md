@@ -1,6 +1,6 @@
 # .ai-sync/ — Universal AI Tool Coordination Protocol
 
-> **Single source of truth for coordinating OpenCode (GLM-5.1) and Antigravity (Gemini) on the same project.**
+> **Single source of truth for coordinating OpenCode (GLM-5.2) and Antigravity (Gemini) on the same project.**
 
 ---
 
@@ -27,9 +27,6 @@ python .ai-sync/sync.py --dry-run
 .ai-sync/                          ← YOU EDIT HERE (single source of truth)
 ├── CONTEXT.md                     ← Project overview, tech stack, constraints
 ├── RULES.md                       ← Shared coding rules (both platforms)
-├── MEMORY.md                      ← Learned lessons (episodic/procedural)
-├── TASKS.md                       ← Cross-tool task tracking
-├── HANDOFF.md                     ← Session handoff between tools
 ├── extensions/
 │   ├── opencode.md                ← OpenCode-specific rules (→ AGENTS.md)
 │   └── antigravity.md             ← Antigravity-specific rules (→ .agents/rules/)
@@ -93,7 +90,7 @@ Instructions for the agent...
 
 Features verified against official documentation:
 
-| Feature | OpenCode (GLM-5.1) | Antigravity (Gemini) | Claude Code |
+| Feature | OpenCode (GLM-5.2) | Antigravity (Gemini) | Claude Code |
 |---------|:-------------------:|:--------------------:|:-----------:|
 | Auto-loaded project rules | `AGENTS.md` | `.agents/rules/*.md` | `CLAUDE.md` |
 | Char limit per rule file | None known | 12,000 chars | None known |
@@ -104,11 +101,11 @@ Features verified against official documentation:
 | SKILL.md format | — | ✅ YAML frontmatter | ✅ |
 | Workflow slash commands | — | ✅ `/workflow-name` | — |
 
-> **Note**: Z.AI docs (`docs.z.ai/devpack/resources/`) describe generic best practices for coding agents and use **Claude Code as a reference example**. Features like `@path/to/import` and `.claude/rules/` are Claude Code-specific, NOT OpenCode/GLM-5.1 features.
+> **Note**: Z.AI docs (`docs.z.ai/devpack/resources/`) describe generic best practices for coding agents and use **Claude Code as a reference example**. Features like `@path/to/import` and `.claude/rules/` are Claude Code-specific, NOT OpenCode/GLM-5.2 features.
 
 ## Best Practices Framework
 
-Based on Z.AI's *Best Practices for Coding Agents* (`docs.z.ai/devpack/resources/best-practice`). These 10 principles are **generic patterns applicable to all coding agents** — both OpenCode (GLM-5.1) and Antigravity (Gemini) benefit from them. The `.ai-sync/` protocol implements each principle to varying degrees.
+Based on Z.AI's *Best Practices for Coding Agents* (`docs.z.ai/devpack/resources/best-practice`). These 10 principles are **generic patterns applicable to all coding agents** — both OpenCode (GLM-5.2) and Antigravity (Gemini) benefit from them. The `.ai-sync/` protocol implements each principle to varying degrees.
 
 > **Key insight from Z.AI**: *"The value of a coding agent does not come from model capability alone. It comes from the combination of model capability and the development workflow around it."*
 
@@ -188,9 +185,7 @@ Both platforms enforce this 5-step loop via RULES.md:
 |------|---------|----------|
 | `CONTEXT.md` | Project overview, tech stack, architecture, constraints | ✅ Yes |
 | `RULES.md` | Shared coding rules applied to both platforms | ✅ Yes |
-| `MEMORY.md` | Learned lessons from past sessions (episodic memory) | ✅ Yes |
-| `TASKS.md` | Active task tracking visible to both tools | ✅ Yes |
-| `HANDOFF.md` | Session context transfer between tools | ✅ Yes |
+| `docs/learnings/` | Reference docs from past sessions (episodic memory) | ✅ Yes |
 | `extensions/opencode.md` | OpenCode-specific rules (subagent delegation, lsp tools) | ✅ Yes |
 | `extensions/antigravity.md` | Antigravity-specific rules (agent personas, terminal policies) | ✅ Yes |
 | `workflows/*.md` | Shared step-by-step procedures | ✅ Yes |
@@ -346,21 +341,17 @@ Keep the main memory file focused on **global shared context** (project backgrou
 ## Cross-Tool Workflow
 
 ### Starting a Session
-1. Read `HANDOFF.md` for context from previous session
-2. Read `TASKS.md` for active tasks
-3. Read `MEMORY.md` for relevant lessons
-4. Proceed with work, updating files as needed
+1. Check `docs/learnings/` for relevant reference docs
+2. Proceed with work, updating files as needed
 
 ### Ending a Session
-1. Update `HANDOFF.md` with session summary
-2. Update `TASKS.md` with task status changes
-3. If learned new lessons → add to `MEMORY.md`
-4. If rules changed → update `RULES.md` → run `sync.py`
+1. If learned new lessons → write reference doc to `docs/learnings/`
+2. If rules changed → update `RULES.md` → run `sync.py`
 
 ### Switching Tools (OpenCode ↔ Antigravity)
-1. End session in current tool (update HANDOFF.md)
-2. Start session in other tool (read HANDOFF.md)
-3. Both tools see the same RULES, MEMORY, and TASKS
+1. Write any lessons to `docs/learnings/`
+2. Start session in other tool (reads same RULES.md + docs/learnings/)
+3. Both tools see the same rules and learnings
 4. No context lost in transition
 
 ## Adding to a New Project
@@ -371,9 +362,7 @@ cp -r .ai-sync/ /path/to/new-project/
 
 # 2. Edit CONTEXT.md with new project info
 # 3. Edit RULES.md with new project rules (or keep shared rules)
-# 4. Clear MEMORY.md (new project = no lessons yet)
-# 5. Clear TASKS.md (no active tasks)
-# 6. Run sync.py
+# 4. Run sync.py
 python .ai-sync/sync.py
 
 # 7. Commit .ai-sync/ to git (platform configs are auto-generated, add to .gitignore if desired)
@@ -397,13 +386,10 @@ python .ai-sync/sync.py
 A: Your changes will be OVERWRITTEN next time sync.py runs. Always edit .ai-sync/ files.
 
 **Q: What if I only use one tool (OpenCode or Antigravity)?**
-A: The protocol still works — just ignore the other platform's generated files. You still benefit from organized memory, tasks, and handoff files.
+A: The protocol still works — just ignore the other platform's generated files. You still benefit from organized rules and learnings.
 
 **Q: Can I add more platforms (e.g., Cursor, Claude Code)?**
 A: Yes! Add a new `extensions/cursor.md` file and update `sync.py` to generate the Cursor config.
 
-**Q: Who writes to HANDOFF.md?**
-A: Whatever tool was last active. OpenCode and Antigravity take turns writing their session context.
-
-**Q: What about conflicting edits to TASKS.md?**
-A: Both tools append to the file. If both are active simultaneously, use git to resolve conflicts (rare case).
+**Q: Where do I write lessons learned?**
+A: Write reference docs to `docs/learnings/` as markdown files (e.g., `2026-06-18-auth-pattern.md`). Both tools are instructed to check this folder before starting work.
