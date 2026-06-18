@@ -28,9 +28,6 @@ PROJECT_ROOT = SYNC_DIR.parent
 
 CONTEXT_FILE = SYNC_DIR / "CONTEXT.md"
 RULES_FILE = SYNC_DIR / "RULES.md"
-MEMORY_FILE = SYNC_DIR / "MEMORY.md"
-TASKS_FILE = SYNC_DIR / "TASKS.md"
-HANDOFF_FILE = SYNC_DIR / "HANDOFF.md"
 OPENCODE_EXT = SYNC_DIR / "extensions" / "opencode.md"
 ANTIGRAVITY_EXT = SYNC_DIR / "extensions" / "antigravity.md"
 WORKFLOWS_DIR = SYNC_DIR / "workflows"

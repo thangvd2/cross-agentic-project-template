@@ -53,6 +53,14 @@
 - Branch and release rules: see RULES.md
 - Z.AI usage policy: see `docs/z-ai-usage-policy-reference.md`
 
+## MEMORY SYSTEM
+
+On starting a new session or task, check `docs/learnings/` for relevant reference docs before asking questions.
+
+- After completing complex work, write a reference doc to `docs/learnings/`
+- Format: `YYYY-MM-DD-short-description.md` with context, problem, root cause, solution
+- Read only docs relevant to current task — do not read all docs every session
+
 ## BRANCH RULES (MANDATORY)
 
 - NEVER commit directly to `master` or `dev`. Both are protected.
@@ -86,11 +94,26 @@
 
 - Match existing patterns in the codebase
 - Files > 300 lines need justification in commit/PR
-- No `as any`, `@ts-ignore`, `@ts-expect-error`
+- No `as any`, `@ts-ignore`, `@ts-expect-error` — they hide type errors that surface in production
 - No deleting tests to make them pass
-- Bug fixes: fix minimally, never refactor while fixing
-- New Python dependencies: add to `requirements-dev.txt` (dev) or `requirements.txt` (prod) AND explain why
+- No silent `except: pass` — unlogged errors become impossible to debug; always log with context
+- Bug fixes: fix minimally, never refactor while fixing — mixed commits make rollback impossible
+- New Python dependencies: add to `requirements-dev.txt` (dev) or `requirements.txt` (prod) AND explain why — hidden deps break reproducibility
 - New npm dependencies: add via `npm install` AND explain why
+
+## AGENT VERIFICATION RULES
+
+These rules apply to ALL agents regardless of model or platform. They are model-agnostic and improve output reliability across any LLM.
+
+### Ground Progress Claims
+- Before declaring a task "done", READ each file you created or modified to verify it exists and has the expected content
+- Do NOT trust your memory of what you wrote — verify against the actual file system state
+- If a file was supposed to be created but you're unsure, READ it to confirm before reporting completion
+
+### Fresh-Context Verification
+- When possible, use SEPARATE agents or sessions for building and reviewing — fresh-context verification outperforms self-critique
+- The reviewer MUST independently verify claims made by the builder — never trust self-reported status ("I created the files") without reading the actual diff
+- The reviewer reads the actual code and test output, not the builder's summary of what it did
 
 ## MANDATORY PRE-PUSH REVIEW (EVERY FEATURE)
 
