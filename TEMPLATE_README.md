@@ -1,13 +1,13 @@
 # Cross-Agentic Development Template
 
 > A reusable project skeleton with built-in dual-AI (OpenCode + Antigravity) workflow support.
-> Extracted from real-world production patterns proven in the V-Pack Monitor project.
+> Extracted from real-world production patterns proven across multiple projects.
 
 ---
 
 ## What Is This?
 
-This template provides a complete project skeleton that supports **simultaneous use of two AI coding tools** — [OpenCode](https://opencode.ai) (GLM-5.1) and [Antigravity](https://antigravity.google) (Gemini) — on the same codebase without conflicts.
+This template provides a complete project skeleton that supports **simultaneous use of two AI coding tools** — [OpenCode](https://opencode.ai) (GLM-5.2) and [Antigravity](https://antigravity.google) (Gemini) — on the same codebase without conflicts.
 
 The core innovation is the **`.ai-sync/` protocol**: a set of shared source files that `sync.py` compiles into platform-specific configuration files for each AI tool. This means:
 
@@ -77,9 +77,6 @@ cross_agentic_project_template/
 ├── .ai-sync/                          ← YOU EDIT HERE (single source of truth)
 │   ├── CONTEXT.md                     ← Project overview, tech stack, constraints
 │   ├── RULES.md                       ← Shared coding rules (both platforms)
-│   ├── MEMORY.md                      ← Learned lessons (episodic/procedural)
-│   ├── TASKS.md                       ← Cross-tool task tracking
-│   ├── HANDOFF.md                     ← Session handoff between tools
 │   ├── sync.py                        ← Generates platform configs
 │   ├── README.md                      ← Full .ai-sync/ documentation
 │   ├── extensions/
@@ -88,6 +85,9 @@ cross_agentic_project_template/
 │   └── workflows/
 │       ├── code-review.md             ← Shared code review procedure
 │       └── release.md                 ← Shared release procedure
+├── docs/
+│   ├── learnings/                     ← Session-to-session reference docs
+│   └── z-ai-usage-policy-reference.md ← Z.AI usage policy reference
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                     ← GitHub Actions CI pipeline
@@ -112,13 +112,11 @@ cross_agentic_project_template/
 |------|---------------|-------------------|
 | `.ai-sync/CONTEXT.md` | Project name, description, tech stack | Structure, format |
 | `.ai-sync/RULES.md` | Test/lint commands, project-specific rules | Branch rules, review process |
-| `.ai-sync/MEMORY.md` | Add entries as you learn | Structure, format |
-| `.ai-sync/TASKS.md` | Add tasks as you work | Task protocol section |
-| `.ai-sync/HANDOFF.md` | Session info at start/end of sessions | Handoff protocol section |
 | `.ai-sync/sync.py` | Nothing — this is already generic | Everything |
 | `.ai-sync/README.md` | Nothing — this is documentation | Everything |
 | `.ai-sync/extensions/` | Nothing — these are already generic | Everything |
 | `.ai-sync/workflows/` | Nothing — these are already generic | Everything |
+| `docs/learnings/` | Add reference docs after complex work | Structure, format |
 | `scripts/bump_version.py` | `PROJECT_NAME`, `FRONTEND_DIR` | Structure, logic |
 | `scripts/check_version_consistency.py` | `PROJECT_NAME`, `FRONTEND_DIR` | Structure, logic |
 | `.github/workflows/ci.yml` | Uncomment frontend section, adjust env vars | Structure, jobs |
@@ -133,18 +131,30 @@ cross_agentic_project_template/
 
 ## Dual-AI Workflow
 
-### OpenCode = Reviewer & Architect
+Roles are **flexible** — assign based on model strengths, not rigid tool bindings. The optimal configuration depends on your models and task requirements.
 
-OpenCode excels at:
+### Common Role Assignments
+
+**Option A — GLM-5.2 Builder + Gemini Reviewer (cost-optimized):**
+- **OpenCode (GLM-5.2)** = Builder — strong long-horizon implementation (SWE-Bench Pro: 62.1)
+- **Antigravity (Gemini Flash)** = Reviewer — fast, cost-efficient for repetitive review loops
+- Best for: autonomous pipelines with many review rounds
+
+**Option B — Antigravity Builder + OpenCode Reviewer (traditional):**
+- **Antigravity (Gemini)** = Builder — feature implementation with agent personas
+- **OpenCode (GLM-5.2)** = Reviewer — 2-pass review with LSP integration
+- Best for: interactive development with deep code analysis
+
+### Tool Strengths
+
+**OpenCode excels at:**
 - **Code review** with 2-pass process (flag → verify)
 - **Architecture decisions** with full dependency tracing
 - **Subagent delegation** — fire explore/librarian agents in parallel
 - **LSP integration** — diagnostics, references, AST search
 - **Plan-before-execute** pattern
 
-### Antigravity = Executor & Implementer
-
-Antigravity excels at:
+**Antigravity excels at:**
 - **Feature implementation** with agent personas (Dev, DevOps, Review)
 - **Terminal commands** with configurable allow/deny policies
 - **Workflow automation** via `/workflow-name` slash commands
@@ -153,19 +163,18 @@ Antigravity excels at:
 ### How They Coordinate
 
 ```
-┌──────────────┐     HANDOFF.md     ┌──────────────┐
-│   OpenCode    │ ◄──────────────► │  Antigravity  │
-│  (Reviewer)   │                   │  (Executor)   │
-├──────────────┤                   ├──────────────┤
-│ Reads:        │                   │ Reads:        │
-│  AGENTS.md    │                   │  .agents/     │
-│               │                   │   rules/      │
-│ Writes:       │                   │               │
-│  HANDOFF.md   │                   │ Writes:       │
-│  MEMORY.md    │                   │  HANDOFF.md   │
-│  TASKS.md     │                   │  MEMORY.md    │
-└──────────────┘                   └──────────────┘
-         │                                │
+┌──────────────┐                      ┌──────────────┐
+│   OpenCode    │                      │  Antigravity  │
+│  (GLM-5.2)    │                      │  (Gemini)     │
+├──────────────┤                      ├──────────────┤
+│ Reads:        │                      │ Reads:        │
+│  AGENTS.md    │                      │  .agents/     │
+│               │                      │   rules/      │
+│ Writes:       │                      │               │
+│  docs/        │                      │ Writes:       │
+│   learnings/  │                      │  docs/        │
+└──────────────┘                      │   learnings/  │
+         │                            └──────────────┘
          └────── .ai-sync/ (shared) ──────┘
                 CONTEXT.md  ← both read
                 RULES.md    ← both read
