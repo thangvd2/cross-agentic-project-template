@@ -1,0 +1,6 @@
+# Dev dependencies for cross-agentic-project-template
+# Template ships without production code; these tools keep CI green.
+# Add real deps here when the project grows.
+
+pytest>=8.0
+ruff>=0.6

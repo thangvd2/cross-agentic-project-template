@@ -1,0 +1,28 @@
+# Antigravity permission declarations for this project.
+# Injected by sync.py into the YAML frontmatter of .agents/rules/platform-antigravity.md.
+# Antigravity only enforces action(target) declarations in rules file frontmatter —
+# markdown prose has no effect. See https://antigravity.google/docs/permissions
+#
+# Precedence: deny > ask > allow. Write implies read; deny read implies deny write.
+# Without these declarations, Antigravity defaults to `ask` for command/mcp/read_url,
+# and auto-allows workspace file reads.
+
+permissions:
+  allow:
+    - command(git status)
+    - command(git diff)
+    - command(git log)
+    - command(pytest)
+    - command(ruff check)
+    - command(npm run build)
+    - command(npm run lint)
+    - command(gh pr)
+    - command(python3 .ai-sync/sync.py)
+    - command(python3 scripts/)
+    - command(python .ai-sync/sync.py)
+    - command(python scripts/)
+  deny:
+    - command(rm -rf)
+    - command(sudo)
+    - command(npm publish)
+    - command(git push --force)

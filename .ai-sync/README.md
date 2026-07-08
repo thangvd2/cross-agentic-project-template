@@ -47,8 +47,8 @@ AGENTS.md                          ← AUTO-GENERATED for OpenCode
 
 ```
 AGENTS.md                              = CONTEXT.md + RULES.md + extensions/opencode.md
-.agents/rules/project-rules.md         = CONTEXT.md + RULES.md + extensions/antigravity.md
-.agents/rules/platform-antigravity.md  = extensions/antigravity.md (split when project-rules.md > 12,000 chars)
+.agents/rules/project-rules.md         = CONTEXT.md + RULES.md
+.agents/rules/platform-antigravity.md  = extensions/antigravity-permissions.yml (frontmatter) + extensions/antigravity.md (body)
 .agents/workflows/                     = Copied from .ai-sync/workflows/
 ```
 
@@ -113,8 +113,8 @@ Based on Z.AI's *Best Practices for Coding Agents* (`docs.z.ai/devpack/resources
 
 | # | Principle | Description | `.ai-sync/` Implementation | Status |
 |---|-----------|-------------|---------------------------|--------|
-| 1 | **Collaborator, not Q&A** | Agent is a configurable collaborator refined over time via guidance files, tool integrations, reusable skills | RULES.md + MEMORY.md + workflows/ shape agent behavior across sessions | ✅ Done |
-| 2 | **Structure Task Inputs** | Every task needs 4 elements: Goal, Context, Constraints, Done-when | TASKS.md (goal), CONTEXT.md (context), RULES.md (constraints), Self-verification checklist (done-when) | ✅ Done |
+| 1 | **Collaborator, not Q&A** | Agent is a configurable collaborator refined over time via guidance files, tool integrations, reusable skills | RULES.md + `docs/learnings/` + workflows/ shape agent behavior across sessions | ✅ Done |
+| 2 | **Structure Task Inputs** | Every task needs 4 elements: Goal, Context, Constraints, Done-when | User prompt (goal), CONTEXT.md (context), RULES.md (constraints), Self-verification checklist (done-when) | ✅ Done |
 | 3 | **Plan Before Execution** | Complex tasks → plan first, implement second. Avoid immediate code generation | OpenCode: Plan mode + subagent delegation. Antigravity: Planning vs Fast mode. workflows/ = pre-defined plans | ✅ Done |
 | 4 | **Project-Level Config Files** | Long-lived rules in config files, not repeated in prompts. *"Put temporary instructions in the prompt, long-lived rules in config files."* | sync.py generates AGENTS.md + `.agents/rules/` from `.ai-sync/` source files. Rules never repeated in prompts. | ✅ Done |
 | 5 | **Execution Environment** | 3 context types: Task, Project, Environment. Environment determines what agent can do | Task = user prompt. Project = CONTEXT.md + RULES.md. Environment = platform permissions (OpenCode subagents, Antigravity `action(target)`) | ✅ Done |
@@ -122,7 +122,7 @@ Based on Z.AI's *Best Practices for Coding Agents* (`docs.z.ai/devpack/resources
 | 7 | **MCP Integration** | Extend agent context beyond repo — issue tracking, CI/CD, databases, API docs | OpenCode: librarian + Context7 + web tools. Antigravity: MCP server support. `.ai-sync/` does not yet define shared MCP config | ⚠️ Partial |
 | 8 | **Capture Repeated Workflows as Skills** | *"If a prompt pattern is used repeatedly, capture it as a Skill."* | workflows/ = basic skills (code-review, release). Antigravity: `.agents/skills/` SKILL.md format. OpenCode: `~/.agents/skills/` separate system | ⚠️ Partial |
 | 9 | **Automate Stable Workflows** | Skills + schedule/trigger = automation. *"Skill = how, Automation = when."* | Not yet implemented. Future: `.ai-sync/automations/` or CI hooks | ❌ Not done |
-| 10 | **Session Management** | Separate session per task, avoid overly long sessions, compress periodically, new sessions for branch explorations | HANDOFF.md = session handoff. TASKS.md = task tracking. Multi-agent: OpenCode subagents, Antigravity personas | ✅ Done |
+| 10 | **Session Management** | Separate session per task, avoid overly long sessions, compress periodically, new sessions for branch explorations | `docs/learnings/` = cross-session knowledge. Multi-agent: OpenCode subagents, Antigravity personas | ✅ Done |
 
 ### The Three Context Types (Principle 5)
 
@@ -210,10 +210,10 @@ Z.AI defines 5 memory types for coding agents:
 
 | Type | Description | `.ai-sync/` Location | Platform Mechanism |
 |------|-------------|---------------------|--------------------|
-| **Session** | Current task context — conversation history, tool outputs, execution plan | `HANDOFF.md` | OpenCode: context window. Antigravity: agent history |
+| **Session** | Current task context — conversation history, tool outputs, execution plan | Conversation (in-tool) | OpenCode: context window. Antigravity: agent history |
 | **Project** | Long-lived codebase info — architecture, coding standards, build commands | `CONTEXT.md` + `RULES.md` | OpenCode: `AGENTS.md`. Antigravity: `.agents/rules/` |
 | **Semantic** | Factual knowledge, API docs, language rules — implemented via RAG | Not in `.ai-sync/` (use platform tools) | OpenCode: librarian + Context7. Antigravity: Google Search |
-| **Episodic** | Past experiences — bug fixes, root causes, debugging strategies that worked | `MEMORY.md` | Both platforms: auto memory |
+| **Episodic** | Past experiences — bug fixes, root causes, debugging strategies that worked | `docs/learnings/*.md` | Both platforms: agent reads on session start |
 | **Procedural** | Step-by-step workflows for completing tasks | `workflows/*.md` | OpenCode: loaded via AGENTS.md. Antigravity: `/workflow-name` commands |
 
 ### Memory Flow
@@ -223,10 +223,10 @@ Every session follows this 3-step cycle (standard pattern from LangGraph, AutoGP
 ```
 ┌─────────────────┐     ┌─────────────────────┐     ┌──────────────────┐
 │ 1. Retrieve      │ ──→ │ 2. Context Assembly  │ ──→ │ 3. Memory Update │
-│ Read HANDOFF.md  │     │ sync.py generates    │     │ Write to         │
-│ Read TASKS.md    │     │ AGENTS.md +          │     │ MEMORY.md,       │
-│ Read MEMORY.md   │     │ .agents/rules/       │     │ HANDOFF.md,      │
-│ Read RULES.md    │     │ from .ai-sync/ files │     │ TASKS.md         │
+│ Read RULES.md    │     │ sync.py generates    │     │ Write reference  │
+│ Read CONTEXT.md  │     │ AGENTS.md +          │     │ doc to           │
+│ Read docs/       │     │ .agents/rules/       │     │ docs/learnings/  │
+│   learnings/     │     │ from .ai-sync/ files │     │                  │
 └─────────────────┘     └─────────────────────┘     └──────────────────┘
 ```
 
@@ -239,7 +239,7 @@ Every session follows this 3-step cycle (standard pattern from LangGraph, AutoGP
 | Memory Kind | Location | Written By | Characteristics |
 |-------------|----------|------------|-----------------|
 | **Instruction** | `RULES.md` | Human | Rules, policies, behavioral constraints. Stable and predictable. Rarely changes. |
-| **Learning** | `MEMORY.md` | Agent | Experience, preferences, failed attempts, takeaways. Grows and improves over time. |
+| **Learning** | `docs/learnings/*.md` | Agent | Experience, preferences, failed attempts, takeaways. Grows and improves over time. |
 
 ### Layered Memory Scoping
 
@@ -255,7 +255,7 @@ Memory is organized by scope — *"who owns it, who shares it, and who it applie
 
 ### Episodic Memory Format
 
-MEMORY.md entries should follow a structured format for consistency:
+Reference docs in `docs/learnings/` should follow a structured format for consistency:
 
 ```markdown
 ### [Date] Short Description

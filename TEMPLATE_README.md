@@ -13,7 +13,7 @@ The core innovation is the **`.ai-sync/` protocol**: a set of shared source file
 
 - **One source of truth** for rules, context, and workflows
 - **Zero conflicts** when switching between AI tools mid-project
-- **Session continuity** via HANDOFF.md — pick up exactly where you left off
+- **Session continuity** via `docs/learnings/` — pick up exactly where you left off
 - **Structured memory** — lessons learned persist across sessions and tools
 
 ## Quick Start

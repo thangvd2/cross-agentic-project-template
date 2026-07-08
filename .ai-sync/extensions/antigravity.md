@@ -36,28 +36,18 @@ Rules can reference other files using `@filename`:
 - Classifies issues: REAL / SPECULATIVE / FALSE POSITIVE
 - Provides FOR and AGAINST evidence for every finding
 
-## TERMINAL POLICIES
+## PERMISSIONS (Antigravity Only)
 
-### Default Allow
-- `npm run test`, `npm run lint`, `npm run build`
-- `python -m pytest`, `ruff check`, `mypy`
-- `git status`, `git diff`, `git log`
-- `gh pr create`, `gh pr merge`, `gh pr view`
+Antigravity enforces permissions via `action(target)` declarations in **3 access lists**: `deny`, `ask`, `allow` (precedence: deny > ask > allow). Markdown prose has NO effect — only YAML frontmatter declarations are enforced. See https://antigravity.google/docs/permissions.
 
-### Default Deny
-- `rm -rf`, `sudo`, `chmod 777`
-- `npm publish`, `pip upload`
-- `git push --force` on master/dev
-- Environment variable printing
-
-## AGENT PERMISSIONS (Antigravity Only)
-
-Antigravity uses `action(target)` format for permissions:
-- `command(prefix)`: Match commands by prefix
+### Action types
+- `command(prefix)`: Match terminal commands by prefix
 - `read_file(/path)`: Match file/directory reads
 - `write_file(/path)`: Match file writes (implies read)
 - `read_url(domain)`: Match URL domain reads
 - `mcp(server/tool)`: Match MCP tool calls
+
+This project's permission declarations live in `.ai-sync/extensions/antigravity-permissions.yml` and are injected by `sync.py` into the frontmatter of `.agents/rules/platform-antigravity.md`. Without these declarations, Antigravity defaults to `ask` for `command`, `mcp`, `read_url`, and auto-allows workspace file reads.
 
 ## WORKFLOW INTEGRATION
 
