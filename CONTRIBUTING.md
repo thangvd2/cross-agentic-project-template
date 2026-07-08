@@ -11,6 +11,8 @@
   git checkout -b fix/description dev
   git checkout -b security/description dev
   git checkout -b refactor/description dev
+  git checkout -b docs/description dev
+  git checkout -b chore/description dev
   ```
 - After work is done, create a PR: `gh pr create --base dev`
 
