@@ -65,7 +65,7 @@ On starting a new session or task, check `docs/learnings/` for relevant referenc
 
 - NEVER commit directly to `master` or `dev`. Both are protected.
 - ALWAYS create a feature branch from `dev`: `git checkout -b {type}/{description} dev`
-- Branch naming: `feature/`, `fix/`, `security/`, `refactor/`
+- Branch naming: `feature/`, `fix/`, `security/`, `refactor/`, `docs/`, `chore/`
 - After work is done: `gh pr create --base dev`
 - Feature PR → dev: use `--squash` (keep dev history clean: 1 feature = 1 commit)
 - Release PR → master: use `--merge` (keep shared history, prevent future conflicts)
@@ -103,7 +103,7 @@ On starting a new session or task, check `docs/learnings/` for relevant referenc
 
 ## AGENT VERIFICATION RULES
 
-These rules apply to ALL agents regardless of model or platform. They are model-agnostic and improve output reliability across any LLM.
+Model-agnostic rules that improve output reliability across any LLM.
 
 ### Ground Progress Claims
 - Before declaring a task "done", READ each file you created or modified to verify it exists and has the expected content
@@ -111,9 +111,41 @@ These rules apply to ALL agents regardless of model or platform. They are model-
 - If a file was supposed to be created but you're unsure, READ it to confirm before reporting completion
 
 ### Fresh-Context Verification
-- When possible, use SEPARATE agents or sessions for building and reviewing — fresh-context verification outperforms self-critique
-- The reviewer MUST independently verify claims made by the builder — never trust self-reported status ("I created the files") without reading the actual diff
-- The reviewer reads the actual code and test output, not the builder's summary of what it did
+- Use SEPARATE agents or sessions for building and reviewing — fresh-context verification outperforms self-critique
+- The reviewer MUST independently verify claims by reading the actual diff/test output, never trust self-reported status
+
+## EXTERNAL REVIEWER INTEGRATION (AGY / GEMINI)
+
+External reviewer (e.g. `agy` with Gemini) provides fresh-context verification. It is ADVISORY, not authoritative.
+
+### When to invoke
+
+| Task type | Invoke? |
+|-----------|---------|
+| Q&A, read files, single-line fix, typo | No |
+| Multi-file change, new feature | Yes |
+| PR creation, pre-merge, pre-push, release | Yes |
+| Security-sensitive ops | Yes |
+
+### Authority
+
+- Reviewer flags issues → builder VERIFIES each before acting (apply anti-false-positive rules)
+- Builder STILL DELIVERS response with findings noted — reviewer does NOT block delivery
+- User retains final authority
+
+### Invocation
+
+- CWD must be project root — wrong CWD forces the reviewer to clone and lose project context
+- Run in BACKGROUND + parallel for independent reviews
+- Set `--print-timeout 60m` (safety net upper bound, NOT expected duration). Check interim with exponential backoff (3m, 6m, 12m, 24m) — don't silently wait.
+
+```bash
+cd /path/to/project
+agy -p "Review PR <URL>. READ-ONLY: do NOT modify files or commit. Read diff + CI, provide 2-pass review per AGENTS.md rules." --model "Gemini 3.5 Flash (High)"
+# or without cd:  agy --add-dir "/path/to/project" -p "..."
+```
+
+Models: `agy models`.
 
 ## MANDATORY PRE-PUSH REVIEW (EVERY FEATURE)
 
@@ -165,32 +197,17 @@ DO NOT skip AGAINST evidence — it is MANDATORY.
 ```
 
 ## 2-PASS REVIEW PROCESS (FOR RELEASE REVIEWS & SECURITY AUDITS)
-For release PRs, security audits, and critical code changes — use this two-pass process:
-
-**Pass 1 — Flag issues (broad scan):**
-- Review different areas (backend, frontend, tests)
-- Flag potential issues using the evidence template above
-- Collect ALL flagged issues — do not filter yet
-
-**Pass 2 — Verify issues (deep investigation):**
-- For EACH flagged issue, investigate to verify
-- The verifier MUST:
-  - Read the FULL dependency chain (not just the file where the issue was found)
-  - Trace every lock acquisition, every fallback path, every related module
-  - Provide FOR and AGAINST evidence
-  - Give final verdict: REAL, SPECULATIVE, or FALSE POSITIVE
-- Only REAL issues are reported to the user
-- SPECULATIVE issues are reported with clear caveat
-- FALSE POSITIVE issues are documented with explanation of why they're safe
-
-**Why 2 passes?** A single pass creates confirmation bias — agents find "evidence" to support their initial concern without checking if it's already mitigated. Two passes separate "detection" (Pass 1) from "verification" (Pass 2), dramatically reducing false positives.
+For release PRs, security audits, and critical code changes:
+- **Pass 1 (scan)**: Flag potential issues across areas (backend, frontend, tests) using the evidence template above. Collect ALL — do not filter.
+- **Pass 2 (verify)**: For EACH flag — read the FULL dependency chain, trace locks/fallbacks/related modules, give verdict: REAL, SPECULATIVE, or FALSE POSITIVE. Only REAL reported to user; SPECULATIVE with caveat; FALSE POSITIVE documented.
+- **Why 2 passes?** Single pass creates confirmation bias. Separating detection from verification reduces false positives.
 
 ## MANDATORY SELF-VERIFICATION CHECKLIST (BEFORE SAYING "DONE")
 You MUST NOT report a task as complete until EVERY item below passes.
 No exceptions. If you skip any item, the user WILL find the bug on double-check.
 
 ### For EVERY code change (Python, JS, JSX, YAML):
-- [ ] NOT on `master` or `dev` — must be on a feature branch (`feature/`, `fix/`, `security/`, `refactor/`)
+- [ ] NOT on `master` or `dev` — must be on a feature branch (`feature/`, `fix/`, `security/`, `refactor/`, `docs/`, `chore/`)
 - [ ] `ruff check .` passes on changed files (or `npm run lint` for frontend)
 - [ ] `lsp_diagnostics` shows no NEW errors on changed files
 - [ ] No duplicate lines, duplicate comments, or copy-paste artifacts
