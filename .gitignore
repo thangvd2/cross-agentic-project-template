@@ -83,7 +83,7 @@ service-account*.json
 # Auto-generated platform configs — edit .ai-sync/ instead
 # Uncomment to enforce sync.py usage:
 # AGENTS.md
-# .agents/rules/project-rules.md
+# .agents/rules/platform-antigravity.md
 # .agents/workflows/
 
 # Logs

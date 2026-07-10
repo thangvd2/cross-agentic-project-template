@@ -47,9 +47,8 @@ python .ai-sync/sync.py
 ```
 
 This generates:
-- `AGENTS.md` — auto-loaded by OpenCode
-- `.agents/rules/project-rules.md` — loaded by Antigravity
-- `.agents/rules/platform-antigravity.md` — Antigravity-specific rules
+- `AGENTS.md` — auto-loaded by both OpenCode + Antigravity (unified rules + extensions)
+- `.agents/rules/platform-antigravity.md` — Antigravity permissions frontmatter
 - `.agents/workflows/` — shared workflow files
 
 ### 5. Initialize git

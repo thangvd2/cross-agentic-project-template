@@ -1,6 +1,6 @@
 # Shared Coding Rules
 
-> **AUTO-GENERATED into AGENTS.md and .agents/rules/project-rules.md. DO NOT edit those files directly.**
+> **AUTO-GENERATED into AGENTS.md (unified for both platforms). DO NOT edit those files directly.**
 > Edit this file, then run `python .ai-sync/sync.py`.
 
 ---
