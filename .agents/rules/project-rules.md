@@ -138,10 +138,29 @@ External reviewer (e.g. `agy` with Gemini) provides fresh-context verification. 
 - `--dangerously-skip-permissions` REQUIRED for headless/background — without it, agy prompts per tool call and stalls. Interactive TTY (user approves) can omit it.
 - `--print-timeout` in seconds (e.g. `3600s`), not `60m`.
 - Run in FOREGROUND (blocking) when review gates a decision (PR merge, release). Background mode is unreliable for blocking reviews.
+- If `agy` not in PATH (e.g. AI harness shells): symlink to a writable PATH dir like `/opt/homebrew/bin`.
+
+**Prompt quality determines review value.** Use numbered READ/VERIFY steps + structured output:
 
 ```bash
-agy -p "Review PR <URL>. READ-ONLY: do NOT modify files or commit. Read diff + CI, provide 2-pass review per AGENTS.md rules." --model "Gemini 3.5 Flash (High)" --dangerously-skip-permissions --add-dir "$(pwd)" --print-timeout 3600s
+agy -p "Review PR #N: <URL>
+
+<context: what the PR is and why>
+
+YOUR TASK — fresh-context verification per AGENTS.md rules. READ-ONLY: do NOT
+modify files or commit.
+
+1. READ <specific files + line numbers to check>
+2. READ <the code the PR claims to fix/modify>
+3. VERIFY <each factual claim — with how to check>
+4. CHECK <for regressions / scope / completeness>
+
+Report as CONFIRMED / CHALLENGE / ADDITIONAL CONCERN. 2-pass review." \
+  --model "Gemini 3.5 Flash (High)" \
+  --dangerously-skip-permissions --add-dir "$(pwd)" --print-timeout 3600s
 ```
+
+Key: "fresh-context" + "READ-ONLY" frames independent check; numbered READ steps prevent skimming; VERIFY forces claim-checking before flagging.
 
 Models: `agy models`.
 
@@ -174,25 +193,6 @@ When flagging a potential issue during code review, you MUST:
 
 **Issue without full dependency trace = SPECULATIVE, not actionable.**
 **Issue without AGAINST evidence = incomplete review.**
-
-## REVIEW PROMPT TEMPLATE (USE WHEN DELEGATING REVIEW TASKS)
-When firing explore/librarian agents for code review, include this structure in the prompt:
-
-```
-For EACH potential issue found, you MUST provide:
-
-1. ISSUE: [one-line description]
-2. FILES READ: [list ALL files you actually read to verify this — not just where the issue appears]
-3. EVIDENCE FOR: [why this seems like a real issue, with file:line references]
-4. EVIDENCE AGAINST: [why this might NOT be a real issue — check mitigations, guards,
-   fallbacks, related modules, production config. If you cannot find any against-evidence,
-   state "No against-evidence found after checking [files checked]"]
-5. DEPENDENCY CHAIN: [list all related files/modules that could affect whether this is real]
-6. VERDICT: REAL / SPECULATIVE / FALSE POSITIVE
-
-DO NOT flag issues without reading the full dependency chain.
-DO NOT skip AGAINST evidence — it is MANDATORY.
-```
 
 ## 2-PASS REVIEW PROCESS (FOR RELEASE REVIEWS & SECURITY AUDITS)
 For release PRs, security audits, and critical code changes:
