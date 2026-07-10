@@ -94,8 +94,13 @@ def extract_body(content: str) -> str:
     return result
 
 
-def generate_opencode_agents() -> str:
-    """Generate AGENTS.md for OpenCode from .ai-sync/ source files."""
+def generate_agents_md() -> str:
+    """Generate AGENTS.md — unified rules for both OpenCode + Antigravity.
+
+    Both platforms auto-load AGENTS.md from project root. Platform-specific
+    extensions are labeled '(OpenCode Only)' / '(Antigravity Only)' so each
+    LLM filters via natural language.
+    """
     parts = [
         AUTOGEN_HEADER,
         "# AGENTS.md — Auto-loaded rules for AI sessions\n",
@@ -113,36 +118,18 @@ def generate_opencode_agents() -> str:
     if opencode_ext:
         parts.append(extract_body(opencode_ext))
 
-    return "\n\n".join(p for p in parts if p.strip())
-
-
-def generate_antigravity_shared() -> str:
-    """Generate .agents/rules/project-rules.md — shared context + rules."""
-    parts = [
-        AUTOGEN_HEADER,
-        "# Project Rules\n",
-        "> **Project Constitution for AI Agents**\n"
-        "> This file governs all AI agent behavior in this repository.\n"
-        "> Agents MUST read this file before any code generation.\n",
-    ]
-
-    context = read_file(CONTEXT_FILE)
-    if context:
-        parts.append(extract_body(context))
-
-    rules = read_file(RULES_FILE)
-    if rules:
-        parts.append(extract_body(rules))
+    antigravity_ext = read_file(ANTIGRAVITY_EXT)
+    if antigravity_ext:
+        parts.append(extract_body(antigravity_ext))
 
     return "\n\n".join(p for p in parts if p.strip())
 
 
 def generate_antigravity_platform() -> str:
-    """Generate .agents/rules/platform-antigravity.md — Antigravity-specific rules.
+    """Generate .agents/rules/platform-antigravity.md — permissions frontmatter only.
 
-    Includes YAML frontmatter with permission declarations (from
-    antigravity-permissions.yml) so Antigravity actually enforces them.
-    Markdown prose in the body documents the model but does not enforce.
+    Antigravity parses YAML frontmatter for permission enforcement. Markdown
+    body is ignored — rules live in AGENTS.md (auto-loaded by both platforms).
     """
     perms = read_file(ANTIGRAVITY_PERMS)
     # Strip comment lines (start with #) and blank lines from the YAML body
@@ -157,13 +144,9 @@ def generate_antigravity_platform() -> str:
             frontmatter = "---\n" + "\n".join(perm_lines) + "\n---\n\n"
 
     parts = [
-        "# Antigravity Platform Rules\n",
-        "> Antigravity-specific rules appended from .ai-sync/extensions/antigravity.md.\n",
+        "# Antigravity Permissions\n",
+        "> Permissions config for Google Antigravity. Markdown rules live in AGENTS.md.\n",
     ]
-
-    antigravity_ext = read_file(ANTIGRAVITY_EXT)
-    if antigravity_ext:
-        parts.append(extract_body(antigravity_ext))
 
     body = "\n\n".join(p for p in parts if p.strip())
     # YAML frontmatter MUST be at line 1 (before any HTML comments) so
@@ -245,8 +228,7 @@ def check_up_to_date() -> bool:
     Also validates Antigravity char limit so over-limit files committed directly
     to the repo cannot bypass CI.
     """
-    agents_content = generate_opencode_agents()
-    shared_content = generate_antigravity_shared()
+    agents_content = generate_agents_md()
     platform_content = generate_antigravity_platform()
 
     all_ok = True
@@ -260,8 +242,12 @@ def check_up_to_date() -> bool:
             all_ok = False
 
     # Validate char limits first (catch over-limit even if file matches hash)
-    _check_limit(AGENTS_RULES_SHARED, shared_content)
     _check_limit(AGENTS_RULES_PLATFORM, platform_content)
+
+    # Migration: legacy project-rules.md should not exist (warn if it does)
+    if AGENTS_RULES_SHARED.exists():
+        print("⚠️  .agents/rules/project-rules.md is legacy (redundant with AGENTS.md) — run: python3 .ai-sync/sync.py to remove")
+        all_ok = False
 
     if AGENTS_MD.exists():
         existing = read_file(AGENTS_MD)
@@ -272,17 +258,6 @@ def check_up_to_date() -> bool:
             print("✅ AGENTS.md is up to date")
     else:
         print("❌ AGENTS.md does not exist — run: python3 .ai-sync/sync.py")
-        all_ok = False
-
-    if AGENTS_RULES_SHARED.exists():
-        existing = read_file(AGENTS_RULES_SHARED)
-        if file_hash(shared_content) != file_hash(existing):
-            print("❌ .agents/rules/project-rules.md is OUT OF DATE — run: python3 .ai-sync/sync.py")
-            all_ok = False
-        else:
-            print("✅ .agents/rules/project-rules.md is up to date")
-    else:
-        print("❌ .agents/rules/project-rules.md does not exist — run: python3 .ai-sync/sync.py")
         all_ok = False
 
     if AGENTS_RULES_PLATFORM.exists():
@@ -348,28 +323,33 @@ def main():
         else:
             print(f"    ⏭️  No changes: {path.relative_to(PROJECT_ROOT)}")
 
-    print("Generating AGENTS.md (for OpenCode)...")
-    agents_content = generate_opencode_agents()
+    print("Generating AGENTS.md (unified for OpenCode + Antigravity)...")
+    agents_content = generate_agents_md()
     changed = write_output(AGENTS_MD, agents_content, dry_run)
     if changed and not dry_run:
         print(f"  ✅ Updated: {AGENTS_MD.relative_to(PROJECT_ROOT)}")
     elif not changed and not dry_run:
         print(f"  ⏭️  No changes: {AGENTS_MD.relative_to(PROJECT_ROOT)}")
 
-    print("\nGenerating .agents/rules/ (for Antigravity)...")
+    print("\nGenerating .agents/rules/ (Antigravity permissions only)...")
     AGENTS_RULES_DIR.mkdir(parents=True, exist_ok=True)
 
-    print("  Shared rules (project-rules.md)...")
-    shared_content = generate_antigravity_shared()
-    shared_overflow = len(shared_content) > ANTIGRAVITY_CHAR_LIMIT
-    changed = write_output(AGENTS_RULES_SHARED, shared_content, dry_run, char_limit=ANTIGRAVITY_CHAR_LIMIT)
-    _emit(AGENTS_RULES_SHARED, changed, shared_overflow)
-
-    print("  Platform rules (platform-antigravity.md)...")
+    print("  Platform permissions (platform-antigravity.md)...")
     platform_content = generate_antigravity_platform()
     platform_overflow = len(platform_content) > ANTIGRAVITY_CHAR_LIMIT
     changed = write_output(AGENTS_RULES_PLATFORM, platform_content, dry_run, char_limit=ANTIGRAVITY_CHAR_LIMIT)
     _emit(AGENTS_RULES_PLATFORM, changed, platform_overflow)
+
+    # Migration: remove legacy project-rules.md (redundant with AGENTS.md)
+    if AGENTS_RULES_SHARED.exists():
+        if dry_run:
+            print("  🗑️  Would remove legacy .agents/rules/project-rules.md (redundant with AGENTS.md)")
+        else:
+            try:
+                AGENTS_RULES_SHARED.unlink(missing_ok=True)
+                print("  🧹 Removed legacy .agents/rules/project-rules.md (redundant with AGENTS.md)")
+            except OSError as exc:
+                print(f"  ⚠️  Could not remove legacy project-rules.md: {exc}", file=sys.stderr)
 
     print("\nSyncing workflows...")
     synced, wf_errors = sync_workflows(dry_run)
@@ -389,9 +369,8 @@ def main():
 
     print(f"\n{'📋 DRY RUN complete' if dry_run else '✅ Sync complete'}!")
     if not dry_run:
-        print("  AGENTS.md → OpenCode auto-loads this file")
-        print("  .agents/rules/project-rules.md → Antigravity shared rules (Always On)")
-        print("  .agents/rules/platform-antigravity.md → Antigravity platform rules (Always On)")
+        print("  AGENTS.md → OpenCode + Antigravity auto-load this file")
+        print("  .agents/rules/platform-antigravity.md → Antigravity permissions frontmatter")
         print("  .agents/workflows/ → Copied from .ai-sync/workflows/")
         print("  .agents/skills/ → Universal skills (managed separately)")
         print("\n⚠️  Remember: NEVER edit generated files directly. Edit .ai-sync/ files instead.")

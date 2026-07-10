@@ -34,11 +34,10 @@ python .ai-sync/sync.py --dry-run
     ├── code-review.md
     └── release.md
         ↓ python .ai-sync/sync.py ↓
-AGENTS.md                          ← AUTO-GENERATED for OpenCode
+AGENTS.md                          ← AUTO-GENERATED for OpenCode + Antigravity (unified)
 .agents/
 ├── rules/
-│   ├── project-rules.md           ← AUTO-GENERATED shared rules for Antigravity
-│   └── platform-antigravity.md    ← AUTO-GENERATED platform rules for Antigravity
+│   └── platform-antigravity.md    ← AUTO-GENERATED permissions frontmatter for Antigravity
 ├── workflows/                     ← COPIED from .ai-sync/workflows/
 └── skills/                        ← Universal skills (managed separately)
 ```
@@ -46,11 +45,12 @@ AGENTS.md                          ← AUTO-GENERATED for OpenCode
 ### Sync Formula
 
 ```
-AGENTS.md                              = CONTEXT.md + RULES.md + extensions/opencode.md
-.agents/rules/project-rules.md         = CONTEXT.md + RULES.md
-.agents/rules/platform-antigravity.md  = extensions/antigravity-permissions.yml (frontmatter) + extensions/antigravity.md (body)
+AGENTS.md                              = CONTEXT.md + RULES.md + extensions/opencode.md + extensions/antigravity.md
+.agents/rules/platform-antigravity.md  = extensions/antigravity-permissions.yml (frontmatter only — permissions enforcement)
 .agents/workflows/                     = Copied from .ai-sync/workflows/
 ```
+
+**Note:** `project-rules.md` was removed — it was 98% duplicate of `AGENTS.md`. Both OpenCode and Antigravity auto-load `AGENTS.md` (verified July 2026), so a separate Antigravity rules file was redundant. Platform-specific extensions are labeled `(OpenCode Only)` / `(Antigravity Only)` for LLM filtering.
 
 ### Architecture Notes
 
@@ -84,7 +84,7 @@ Instructions for the agent...
 
 **Workflows:** Invoked via `/workflow-name` slash command. Can chain workflows. Agent can auto-generate workflows from conversation history.
 
-**sync.py validates** 12,000 char limit on generated `.agents/rules/project-rules.md` and all workflow files.
+**sync.py validates** 12,000 char limit on generated `platform-antigravity.md` and all workflow files.
 
 ### Platform Feature Matrix
 
@@ -190,9 +190,8 @@ Both platforms enforce this 5-step loop via RULES.md:
 | `extensions/antigravity.md` | Antigravity-specific rules (agent personas, terminal policies) | ✅ Yes |
 | `workflows/*.md` | Shared step-by-step procedures | ✅ Yes |
 | `sync.py` | Sync script (generates platform configs) | ✅ Yes |
-| `AGENTS.md` | **AUTO-GENERATED** for OpenCode | ❌ No — run sync.py |
-| `.agents/rules/project-rules.md` | **AUTO-GENERATED** shared rules for Antigravity | ❌ No — run sync.py |
-| `.agents/rules/platform-antigravity.md` | **AUTO-GENERATED** platform rules for Antigravity | ❌ No — run sync.py |
+| `AGENTS.md` | **AUTO-GENERATED** unified rules for OpenCode + Antigravity | ❌ No — run sync.py |
+| `.agents/rules/platform-antigravity.md` | **AUTO-GENERATED** permissions frontmatter for Antigravity | ❌ No — run sync.py |
 
 ## When to Run sync.py
 
@@ -211,7 +210,7 @@ Z.AI defines 5 memory types for coding agents:
 | Type | Description | `.ai-sync/` Location | Platform Mechanism |
 |------|-------------|---------------------|--------------------|
 | **Session** | Current task context — conversation history, tool outputs, execution plan | Conversation (in-tool) | OpenCode: context window. Antigravity: agent history |
-| **Project** | Long-lived codebase info — architecture, coding standards, build commands | `CONTEXT.md` + `RULES.md` | OpenCode: `AGENTS.md`. Antigravity: `.agents/rules/` |
+| **Project** | Long-lived codebase info — architecture, coding standards, build commands | `CONTEXT.md` + `RULES.md` | Both platforms: `AGENTS.md` (Antigravity also reads `.agents/rules/platform-antigravity.md` for permissions) |
 | **Semantic** | Factual knowledge, API docs, language rules — implemented via RAG | Not in `.ai-sync/` (use platform tools) | OpenCode: librarian + Context7. Antigravity: Google Search |
 | **Episodic** | Past experiences — bug fixes, root causes, debugging strategies that worked | `docs/learnings/*.md` | Both platforms: agent reads on session start |
 | **Procedural** | Step-by-step workflows for completing tasks | `workflows/*.md` | OpenCode: loaded via AGENTS.md. Antigravity: `/workflow-name` commands |
@@ -374,7 +373,7 @@ python .ai-sync/sync.py
 ```gitignore
 # Auto-generated platform configs — edit .ai-sync/ instead
 # AGENTS.md
-# .agents/rules/project-rules.md
+# .agents/rules/platform-antigravity.md
 # .agents/workflows/
 ```
 

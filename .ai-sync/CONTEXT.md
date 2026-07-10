@@ -1,7 +1,7 @@
 # Project Context
 
 > **This file is the SINGLE SOURCE OF TRUTH for project context.**
-> Both OpenCode (AGENTS.md) and Antigravity (.agents/rules/project-rules.md) are AUTO-GENERATED from this file.
+> Both OpenCode and Antigravity auto-load AGENTS.md, which is AUTO-GENERATED from this file.
 > **DO NOT edit generated files directly.** Edit .ai-sync/ files, then run `python .ai-sync/sync.py`.
 
 ---
