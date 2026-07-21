@@ -223,7 +223,7 @@ modify files or commit.
 4. CHECK <for regressions / scope / completeness>
 
 Report as CONFIRMED / CHALLENGE / ADDITIONAL CONCERN. 2-pass review." \
-  --model "Gemini 3.5 Flash (High)" \
+  --model "Gemini 3.6 Flash (High)" \
   --dangerously-skip-permissions --add-dir "$(pwd)" --print-timeout 3600s
 ```
 
@@ -374,7 +374,7 @@ modify files or commit.
 4. CHECK <for regressions / scope / completeness>
 
 Report as CONFIRMED / CHALLENGE / ADDITIONAL CONCERN. 2-pass review." \
-  --model "Gemini 3.5 Flash (High)" \
+  --model "Gemini 3.6 Flash (High)" \
   --dangerously-skip-permissions --add-dir "$(pwd)" --print-timeout 3600s
 ```
 
