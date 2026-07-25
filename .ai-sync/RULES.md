@@ -142,6 +142,63 @@ AI agents are reserved for mechanical/doc/test work.
 
 ## GEMINI CONSULTATION PROTOCOL
 
+### Independent Research Before Consultation (MANDATORY)
+
+Gemini is a **fresh-context advisor**, NOT a replacement for your own
+analysis. Consulting Gemini *before* doing your own research anchors your
+thinking to its framing and causes you to miss issues it didn't surface.
+
+**The mandatory 4-phase sequence for any non-trivial question, audit,
+design decision, or bug investigation:**
+
+```
+Phase 1: SELF-RESEARCH     Phase 2: GEMINI       Phase 3: TRACE     Phase 4: SYNTHESIZE
+(read code yourself,       (consult with full    (verify EVERY       (merge independent +
+ dispatch agents)           context from P1)      Gemini claim)       Gemini findings → final
+                                                                       report)
+```
+
+#### Phase 1: Independent Self-Research (BEFORE consulting Gemini)
+Do this FIRST. Do NOT consult Gemini until complete.
+1. **Read the relevant code yourself.** Open the actual files. Don't
+   guess from memory or summaries.
+2. **Dispatch parallel agents** (Explore, code-architect, code-reviewer)
+   to audit different dimensions independently. Give each a specific,
+   bounded scope (e.g., "audit error handling", "audit test coverage",
+   "audit security"). Run them in parallel.
+3. **Form your own assessment.** Write down YOUR findings, YOUR
+   severity ratings, YOUR list of issues — *before* hearing Gemini's.
+4. **Prepare the consultation brief.** Gather metrics, file:line
+   references, and your preliminary conclusions to give Gemini full
+   context.
+
+#### Phase 2: Consult Gemini (with full context)
+- Share your Phase 1 findings with Gemini so it can validate, challenge,
+  or add to them — not so it can do your thinking for you.
+- Ask specific questions, not open-ended "what do you think?"
+
+#### Phase 3: Trace ALL Gemini Claims (MANDATORY — per rules below)
+- EVERY factual claim, recommendation, and finding from Gemini must be
+  traced to the actual code/file/config before relaying it to the user.
+- Correct wrong claims explicitly.
+- This step already exists as "Consultation tracing rules" below — it
+  applies here too.
+
+#### Phase 4: Synthesize Independent + Gemini Findings
+- Merge YOUR findings (Phase 1) with Gemini's traced findings (Phase 3).
+- Clearly distinguish: "My audit found X" vs "Gemini found Y (traced:
+  confirmed/wrong)" vs "Both independently found Z".
+- If Gemini missed something you found, state that. If Gemini found
+  something you missed, acknowledge it. The synthesis is the final
+  deliverable — not just Gemini's report with your sign-off.
+
+**Anti-patterns (FORBIDDEN):**
+- ❌ Consulting Gemini first, then tracing only its claims (anchors to
+  Gemini's framing, misses issues it didn't surface)
+- ❌ Relaying Gemini's report as your assessment ("Gemini says X")
+  without independent verification
+- ❌ Skipping Phase 1 because "Gemini will catch it"
+
 ### When to consult Gemini (3 mandatory points)
 
 | Point | When | What for |
@@ -288,6 +345,23 @@ Model-agnostic rules that improve output reliability across any LLM.
 ### Fresh-Context Verification
 - Use SEPARATE agents or sessions for building and reviewing — fresh-context verification outperforms self-critique
 - The reviewer MUST independently verify claims by reading the actual diff/test output, never trust self-reported status
+
+### Test Code Must Be Executed, Not Just Read (MANDATORY)
+Never declare CONFIRMED on a PR containing test additions, test helpers,
+or test fixes based solely on code inspection. The reviewer MUST execute
+the targeted test suite locally and include the command output verifying
+execution.
+
+This extends the Browser Testing rule above to ALL test code. Code review
+catches logic errors but cannot catch runtime bugs in:
+- URL/query string construction (double `?`, missing `&`)
+- Fixture ordering and side effects
+- Mock setup that doesn't match real behavior
+- Import-time vs runtime resolution
+
+If the tests cannot be executed (e.g., missing browser, missing deps),
+**explicitly state this** and flag the PR as "tests not executed — needs
+manual verification."
 
 ## EXTERNAL REVIEWER INTEGRATION (AGY / GEMINI)
 
