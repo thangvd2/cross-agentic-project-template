@@ -94,7 +94,7 @@ infrequent and correctness >> token cost.
 - After work is done: `gh pr create --base dev`
 - Feature PR → dev: use `--squash` (keep dev history clean: 1 feature = 1 commit)
 - Release PR → master: use `--merge` (keep shared history, prevent future conflicts)
-- NEVER merge any PR without explicit user confirmation. Always ask first.
+- NEVER merge any PR without explicit user confirmation (exception: PRs passing the mandatory PR REVIEW POLICY below are pre-authorized).
 
 ## RELEASE RULES (MANDATORY)
 
@@ -313,6 +313,18 @@ Before fixing or dismissing ANY Gemini finding (including MINOR):
 
 **Anti-skip rule:** Do NOT dismiss a MINOR issue with "low impact" or
 "cosmetic" without first tracing the actual code path and verifying.
+
+## PR REVIEW POLICY (MANDATORY for non-trivial PRs)
+
+Dual-parallel review for non-trivial PRs (pre-authorized, no confirmation
+needed before merge). Trivial PRs (typo, version bump, single-line doc fix)
+may skip both tiers — use judgment.
+- **Tier 1**: Gemini (enhanced prompt with VERIFY WITH TOOLS instruction)
+- **Tier 2**: code-reviewer agent (tool-based factual trace, background)
+
+Run both in parallel (single message, 2 tool calls). Synthesize findings,
+classify REAL/SPECULATIVE/FALSE POSITIVE, fix REAL issues, then merge
+without asking for confirmation (user pre-authorized this policy).
 
 ## POST-FEATURE CHECKLIST (MANDATORY)
 
