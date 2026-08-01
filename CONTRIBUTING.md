@@ -89,6 +89,11 @@ pytest tests/ -v
 
 # 5. Start development server
 # python -m uvicorn main:app --reload
+
+# 6. Install git hooks (CRITICAL — protects dev/master from direct commits)
+pre-commit install --install-hooks
+pre-commit install --hook-type pre-push
+# Now `git commit` on dev/master is blocked. Bypass (humans only): git commit --no-verify
 ```
 
 ## PR Template
